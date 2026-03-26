@@ -12,6 +12,10 @@ CLIENT_BIN = client_app
 
 all: $(SERVER_BIN) $(CLIENT_BIN)
 
+server: $(SERVER_BIN)
+
+client: $(CLIENT_BIN)
+
 $(SERVER_BIN): $(SERVER_OBJ)
 	$(CC) $(CFLAGS) -o $@ $^
 

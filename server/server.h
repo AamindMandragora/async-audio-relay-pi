@@ -28,6 +28,10 @@ typedef struct {
 // global message storage
 extern MessageQueue message_queue;
 
+void add_client(int fd);
+
+void remove_client(int fd);
+
 int start_server(int port);
 
 void *handle_client(void *arg);
