@@ -20,7 +20,7 @@ $(SERVER_BIN): $(SERVER_OBJ)
 	$(CC) $(CFLAGS) -o $@ $^
 
 $(CLIENT_BIN): $(CLIENT_OBJ)
-	$(CC) $(CFLAGS) -o $@ $^
+	$(CC) $(CFLAGS) -o $@ $^ -lportaudio
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
