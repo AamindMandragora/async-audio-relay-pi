@@ -1,3 +1,2 @@
-makefile
 separate recording and playing
 udp connection thing

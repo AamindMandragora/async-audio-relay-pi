@@ -1,6 +1,9 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -std=c11 -pthread -Ishared -Iserver
 
+PI_HOST = pi@cs341-pi-13
+PI_DIR = ~/async-audio-relay
+
 SERVER_SRC = server/server.c
 CLIENT_SRC = client/client.c
 
@@ -10,11 +13,21 @@ CLIENT_OBJ = $(CLIENT_SRC:.c=.o)
 SERVER_BIN = server_app
 CLIENT_BIN = client_app
 
-all: $(SERVER_BIN) $(CLIENT_BIN)
+all: server client
+
+deploy-server:
+	rsync -avz server/ shared/ Makefile $(PI_HOST):$(PI_DIR)/
+	ssh $(PI_HOST) "cd $(PI_DIR) && make server"
+
+run-server: deploy-server
+	ssh $(PI_HOST) "cd $(PI_DIR) && ./server_app"
 
 server: $(SERVER_BIN)
 
 client: $(CLIENT_BIN)
+
+run-client: client
+	./client_app
 
 $(SERVER_BIN): $(SERVER_OBJ)
 	$(CC) $(CFLAGS) -o $@ $^
