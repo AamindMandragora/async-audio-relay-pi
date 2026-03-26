@@ -17,7 +17,7 @@ all: server client
 
 deploy-server:
 	rsync -avz server/ shared/ Makefile $(PI_HOST):$(PI_DIR)/
-	ssh $(PI_HOST) "cd $(PI_DIR) && make server"
+	ssh $(PI_HOST) "cd $(PI_DIR) && git pull && make server"
 
 run-server: deploy-server
 	ssh $(PI_HOST) "cd $(PI_DIR) && ./server_app"
