@@ -16,7 +16,7 @@ void* client_record(void *arg) {
     PaStream* instream;
     Pa_OpenDefaultStream(&instream, 1, 0, paFloat32, 44100.0, BUFFER_SIZE, NULL, NULL);
     Pa_StartStream(instream);
-    float buffer[BUFFER_SIZE];
+    char buffer[BUFFER_SIZE * sizeof(float)];
     while (1) {
         PaError read_err = Pa_ReadStream(instream, buffer, BUFFER_SIZE);
         if (read_err != paNoError) break;
@@ -37,7 +37,7 @@ void* client_play(void *arg) {
     PaStream* outstream;
     Pa_OpenDefaultStream(&outstream, 0, 1, paFloat32, 44100.0, BUFFER_SIZE, NULL, NULL);
     Pa_StartStream(outstream);
-    float buffer[BUFFER_SIZE];
+    char buffer[BUFFER_SIZE * sizeof(float)];
     while (1) {
 #ifdef _WIN32
         recv(server_fd, buffer, BUFFER_SIZE * sizeof(float), 0);

@@ -75,7 +75,7 @@ int start_server(int port) {
 void *handle_client(void *arg) {
     int *ptr = (int*)arg;
     int client_fd = *ptr;
-    float buffer[BUFFER_SIZE];
+    char buffer[BUFFER_SIZE * sizeof(float)];
     while (1) {
 #ifdef _WIN32
         int len = recv(client_fd, buffer, sizeof(buffer) - 1, 0);

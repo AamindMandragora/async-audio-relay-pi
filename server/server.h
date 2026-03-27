@@ -24,7 +24,7 @@
 typedef struct {
     int id;
     int length;
-    float data[BUFFER_SIZE];
+    char data[BUFFER_SIZE * sizeof(float)];
 } AudioMessage;
 
 typedef struct {
