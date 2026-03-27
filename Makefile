@@ -22,7 +22,7 @@ CLIENT_BIN = client_app
 all: server client
 
 deploy-server:
-	rsync -avz server/ shared/ Makefile $(PI_HOST):$(PI_DIR)/
+	rsync -avz $(PI_HOST):$(PI_DIR)/
 	ssh $(PI_HOST) "cd $(PI_DIR) && git pull && make server"
 
 run-server: deploy-server

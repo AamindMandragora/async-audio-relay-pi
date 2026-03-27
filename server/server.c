@@ -128,6 +128,8 @@ void *handle_client(void *arg) {
             pthread_mutex_unlock(&clients_lock);
         } else if (strncmp(buffer, "exit", strlen("exit"))) {
             dprintf(client_fd, "%s\n", buffer);
+        } else {
+            break;
         }
     }
     remove_client(client_fd);
