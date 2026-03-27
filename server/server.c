@@ -44,7 +44,6 @@ int start_server(int port) {
         exit(-1);
     }
 #endif
-
     int sock_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (sock_fd < 0) {
         perror("socket()");
@@ -77,11 +76,7 @@ void *handle_client(void *arg) {
     int client_fd = *ptr;
     char buffer[BUFFER_SIZE * sizeof(float)];
     while (1) {
-#ifdef _WIN32
-        int len = recv(client_fd, buffer, sizeof(buffer), 0);
-#else
-        int len = read(client_fd, buffer, sizeof(buffer));
-#endif
+        int len = read_full(client_fd, buffer, sizeof(buffer));
         if (len <= 0) break;
         pthread_mutex_lock(&clients_lock);
         for (int i = 0; i < num_clients; i++) {
@@ -109,11 +104,14 @@ void *handle_client(void *arg) {
 int main() {
     int sock_fd = start_server(PORT);
     while (1) {
+        if (num_clients >= MAX_CLIENTS) continue;
         int client_fd = accept(sock_fd, NULL, NULL);
         if (client_fd < 0) {
             perror("accept()");
             exit(1);
         }
+        int flag = 1;
+        setsockopt(client_fd, IPPROTO_TCP, TCP_NODELAY, &flag, sizeof(flag));
         add_client(client_fd);
         int *ptr = malloc(sizeof(int));
         if (ptr == NULL) {

@@ -14,7 +14,7 @@ void* client_record(void *arg) {
     int *ptr = (int*)arg;
     int server_fd = *ptr;
     PaStream* instream;
-    Pa_OpenDefaultStream(&instream, 1, 0, paFloat32, 44100.0, BUFFER_SIZE, NULL, NULL);
+    Pa_OpenDefaultStream(&instream, 1, 0, paFloat32, SAMPLE_RATE, BUFFER_SIZE, NULL, NULL);
     Pa_StartStream(instream);
     char buffer[BUFFER_SIZE * sizeof(float)];
     while (1) {
@@ -35,15 +35,11 @@ void* client_play(void *arg) {
     int *ptr = (int*)arg;
     int server_fd = *ptr;
     PaStream* outstream;
-    Pa_OpenDefaultStream(&outstream, 0, 1, paFloat32, 44100.0, BUFFER_SIZE, NULL, NULL);
+    Pa_OpenDefaultStream(&outstream, 0, 1, paFloat32, SAMPLE_RATE, BUFFER_SIZE, NULL, NULL);
     Pa_StartStream(outstream);
     char buffer[BUFFER_SIZE * sizeof(float)];
     while (1) {
-#ifdef _WIN32
-        recv(server_fd, buffer, BUFFER_SIZE * sizeof(float), 0);
-#else
-        read(server_fd, buffer, BUFFER_SIZE * sizeof(float));
-#endif
+        read_full(server_fd, buffer, sizeof(buffer));
         PaError read_err = Pa_WriteStream(outstream, buffer, BUFFER_SIZE);
         if (read_err != paNoError) break;
     }
@@ -53,19 +49,21 @@ void* client_play(void *arg) {
 }
 
 int main() {
-    #ifdef _WIN32
-        WSADATA wsa;
-        if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
-            fprintf(stderr, "WSAStartup failed\n");
-            exit(-1);
-        }
-    #endif
-
+#ifdef _WIN32
+    WSADATA wsa;
+    if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
+        fprintf(stderr, "WSAStartup failed\n");
+        exit(-1);
+    }
+#endif
     int sock_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (sock_fd < 0) {
         perror("socket()");
         exit(-1);
     }
+    int setopt = 1;
+    setsockopt(sock_fd, IPPROTO_TCP, TCP_NODELAY, (const char*)&setopt, sizeof(setopt));
+
     struct sockaddr_in server_addr;
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = htons(PORT);
@@ -101,5 +99,9 @@ int main() {
     }
     pthread_join(record_tid, NULL);
     pthread_join(play_tid, NULL);
+    Pa_Terminate();
+#ifdef _WIN32
+    WSACleanup();
+#endif
     return 0;
 }
