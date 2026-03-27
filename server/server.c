@@ -78,12 +78,11 @@ void *handle_client(void *arg) {
     char buffer[BUFFER_SIZE * sizeof(float)];
     while (1) {
 #ifdef _WIN32
-        int len = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
+        int len = recv(client_fd, buffer, sizeof(buffer), 0);
 #else
-        int len = read(client_fd, buffer, sizeof(buffer) - 1);
+        int len = read(client_fd, buffer, sizeof(buffer));
 #endif
         if (len <= 0) break;
-        buffer[len] = '\0';
         pthread_mutex_lock(&clients_lock);
         for (int i = 0; i < num_clients; i++) {
             if (client_fds[i] != client_fd) {

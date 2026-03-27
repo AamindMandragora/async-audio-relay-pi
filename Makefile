@@ -16,29 +16,19 @@ CLIENT_SRC = client/client.c
 SERVER_OBJ = objs/server.o
 CLIENT_OBJ = objs/client.o
 
-SERVER_BIN = server_app
-CLIENT_BIN = client_app
+SERVER_BIN = bin/server_app
+CLIENT_BIN = bin/client_app
 
 all: server client
-
-deploy-server:
-	rsync -avz $(PI_HOST):$(PI_DIR)/
-	ssh $(PI_HOST) "cd $(PI_DIR) && git pull && make server"
-
-run-server: deploy-server
-	ssh $(PI_HOST) "cd $(PI_DIR) && ./server_app"
 
 server: $(SERVER_BIN)
 
 client: $(CLIENT_BIN)
 
-run-client: client
-	./client_app
-
-$(SERVER_BIN): $(SERVER_OBJ)
+$(SERVER_BIN): $(SERVER_OBJ) | bin
 	$(CC) $(CFLAGS) -o $@ $^ $(LIBS)
 
-$(CLIENT_BIN): $(CLIENT_OBJ)
+$(CLIENT_BIN): $(CLIENT_OBJ) | bin
 	$(CC) $(CFLAGS) -o $@ $^ -lportaudio $(LIBS)
 
 objs/server.o: server/server.c | objs
@@ -49,6 +39,9 @@ objs/client.o: client/client.c | objs
 
 objs:
 	mkdir -p objs
+
+bin:
+	mkdir -p bin
 
 tests:
 	$(CC) $(CFLAGS) tests/*.c -o tests/tests_runner
