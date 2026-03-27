@@ -1,10 +1,21 @@
 #ifndef SERVER_H
 #define SERVER_H
 
-#include <pthread.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <sys/socket.h>
+#ifdef _WIN32
+  #include <winsock2.h>
+  #include <ws2tcpip.h>
+  #ifdef __MINGW32__
+    #include <pthread.h>      // MinGW ships winpthreads
+  #else
+    // MSVC: you'd need a pthreads-win32 library or switch to Windows threads
+    #error "Non-MinGW Windows builds need a pthread implementation"
+  #endif
+#else
+  #include <pthread.h>
+  #include <netinet/in.h>
+  #include <arpa/inet.h>
+  #include <sys/socket.h>
+#endif
 
 #define PORT 1490
 #define MAX_CLIENTS 4

@@ -53,12 +53,7 @@ paTestData;
 ** It may be called at interrupt level on some machines so don't do anything
 ** that could mess up the system like calling malloc() or free().
 */
-static int recordCallback( const void *inputBuffer, void *outputBuffer,
-                           unsigned long framesPerBuffer,
-                           const PaStreamCallbackTimeInfo* timeInfo,
-                           PaStreamCallbackFlags statusFlags,
-                           void *userData )
-{
+static int recordCallback(const void *inputBuffer, void *outputBuffer, unsigned long framesPerBuffer, const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags, void *userData) {
     paTestData *data = (paTestData*)userData;
     const SAMPLE *rptr = (const SAMPLE*)inputBuffer;
     SAMPLE *wptr = &data->recordedSamples[data->frameIndex * NUM_CHANNELS];
@@ -72,31 +67,24 @@ static int recordCallback( const void *inputBuffer, void *outputBuffer,
     (void) statusFlags;
     (void) userData;
 
-    if( framesLeft < framesPerBuffer )
-    {
+    if (framesLeft < framesPerBuffer) {
         framesToCalc = framesLeft;
         finished = paComplete;
-    }
-    else
-    {
+    } else {
         framesToCalc = framesPerBuffer;
         finished = paContinue;
     }
 
-    if( inputBuffer == NULL )
-    {
-        for( i=0; i<framesToCalc; i++ )
-        {
+    if (inputBuffer == NULL) {
+        for (i = 0; i < framesToCalc; i++) {
             *wptr++ = SAMPLE_SILENCE;  /* left */
-            if( NUM_CHANNELS == 2 ) *wptr++ = SAMPLE_SILENCE;  /* right */
+            if (NUM_CHANNELS == 2) *wptr++ = SAMPLE_SILENCE;  /* right */
         }
-    }
-    else
-    {
-        for( i=0; i<framesToCalc; i++ )
+    } else {
+        for (i = 0; i<framesToCalc; i++ )
         {
             *wptr++ = *rptr++;  /* left */
-            if( NUM_CHANNELS == 2 ) *wptr++ = *rptr++;  /* right */
+            if (NUM_CHANNELS == 2) *wptr++ = *rptr++;  /* right */
         }
     }
     data->frameIndex += framesToCalc;

@@ -4,7 +4,24 @@
 #include "string.h"
 #include "stdlib.h"
 #include "stdio.h"
-#include "unistd.h"
+
+#ifdef _WIN32
+  // Windows replacements for dprintf and close
+  static void send_str(int fd, const char *fmt, ...) {
+      char buf[1024];
+      va_list ap;
+      va_start(ap, fmt);
+      int n = vsnprintf(buf, sizeof(buf), fmt, ap);
+      va_end(ap);
+      if (n > 0) send(fd, buf, n, 0);
+  }
+  #define dprintf send_str
+  #define close_socket closesocket
+  #include <stdarg.h>
+#else
+  #include "unistd.h"
+  #define close_socket close
+#endif
 
 static int num_clients = 0;
 static int client_fds[MAX_CLIENTS];
@@ -30,13 +47,22 @@ void remove_client(int fd) {
 }
 
 int start_server(int port) {
+#ifdef _WIN32
+    WSADATA wsa;
+    if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
+        fprintf(stderr, "WSAStartup failed\n");
+        exit(-1);
+    }
+#endif
+
     int sock_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (sock_fd < 0) {
         perror("socket()");
         exit(-1);
     }
     int setopt = 1;
-    setsockopt(sock_fd, SOL_SOCKET, SO_REUSEADDR, &setopt, sizeof(setopt));
+    setsockopt(sock_fd, SOL_SOCKET, SO_REUSEADDR, (const char*)&setopt, sizeof(setopt));
+
     struct sockaddr_in server_addr;
     memset(&server_addr, 0, sizeof(server_addr));
     server_addr.sin_family = AF_INET;
@@ -44,12 +70,12 @@ int start_server(int port) {
     server_addr.sin_addr.s_addr = INADDR_ANY;
     if (bind(sock_fd, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0) {
         perror("bind()");
-        close(sock_fd);
+        close_socket(sock_fd);
         exit(-1);
     }
     if (listen(sock_fd, 10) < 0) {
         perror("listen");
-        close(sock_fd);
+        close_socket(sock_fd);
         exit(-1);
     }
     printf("Server listening on port %d\n", port);
@@ -57,12 +83,16 @@ int start_server(int port) {
 }
 
 void *handle_client(void *arg) {
-    int *ptr = (int*)arg; 
+    int *ptr = (int*)arg;
     int client_fd = *ptr;
     dprintf(client_fd, "I see you.\n");
     char buffer[1000];
     while (1) {
+#ifdef _WIN32
+        int len = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
+#else
         int len = read(client_fd, buffer, sizeof(buffer) - 1);
+#endif
         if (len <= 0) break;
         buffer[len] = '\0';
         int receiver_fd;
@@ -101,8 +131,12 @@ void *handle_client(void *arg) {
         }
     }
     remove_client(client_fd);
+#ifdef _WIN32
+    shutdown(client_fd, SD_BOTH);
+#else
     shutdown(client_fd, SHUT_RDWR);
-    close(client_fd);
+#endif
+    close_socket(client_fd);
     free(ptr);
     return NULL;
 }
@@ -130,7 +164,7 @@ int main() {
         add_client(client_fd);
         int *ptr = malloc(sizeof(int));
         if (ptr == NULL) {
-            close(client_fd);
+            close_socket(client_fd);
             continue;
         }
         *ptr = client_fd;
@@ -139,8 +173,8 @@ int main() {
         if (pthread_create(&tid, NULL, handle_client, (void*)ptr)) {
             perror("pthread_create()");
             free(ptr);
-            close(client_fd);
-            close(sock_fd);
+            close_socket(client_fd);
+            close_socket(sock_fd);
             exit(1);
         }
         pthread_detach(tid);
