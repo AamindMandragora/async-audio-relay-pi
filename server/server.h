@@ -5,10 +5,9 @@
   #include <winsock2.h>
   #include <ws2tcpip.h>
   #ifdef __MINGW32__
-    #include <pthread.h>      // MinGW ships winpthreads
+    #include <pthread.h>
   #else
-    // MSVC: you'd need a pthreads-win32 library or switch to Windows threads
-    #error "Non-MinGW Windows builds need a pthread implementation"
+    #error "need pthread"
   #endif
 #else
   #include <pthread.h>
@@ -17,26 +16,23 @@
   #include <sys/socket.h>
 #endif
 
-#define PORT 1490
-#define MAX_CLIENTS 4
-#define BUFFER_SIZE 4096
+#include "protocol.h"
+
+#define MAX_CLIENTS 2
 #define MAX_MESSAGES 100
 
-// structure of an audio message stored on the server
 typedef struct {
     int id;
     int length;
-    char data[BUFFER_SIZE];
+    float data[BUFFER_SIZE];
 } AudioMessage;
 
-// a thread-safe queue of such audio messages
 typedef struct {
     AudioMessage messages[MAX_MESSAGES];
     int count;
     pthread_mutex_t lock;
 } MessageQueue;
 
-// global message storage
 extern MessageQueue message_queue;
 
 void add_client(int fd);
@@ -46,11 +42,5 @@ void remove_client(int fd);
 int start_server(int port);
 
 void *handle_client(void *arg);
-
-void add_message(AudioMessage msg);
-
-int get_messages(AudioMessage *buffer, int max);
-
-void init_queue();
 
 #endif

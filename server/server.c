@@ -6,16 +6,6 @@
 #include "stdio.h"
 
 #ifdef _WIN32
-  // Windows replacements for dprintf and close
-  static void send_str(int fd, const char *fmt, ...) {
-      char buf[1024];
-      va_list ap;
-      va_start(ap, fmt);
-      int n = vsnprintf(buf, sizeof(buf), fmt, ap);
-      va_end(ap);
-      if (n > 0) send(fd, buf, n, 0);
-  }
-  #define dprintf send_str
   #define close_socket closesocket
   #include <stdarg.h>
 #else
@@ -85,8 +75,7 @@ int start_server(int port) {
 void *handle_client(void *arg) {
     int *ptr = (int*)arg;
     int client_fd = *ptr;
-    dprintf(client_fd, "I see you.\n");
-    char buffer[1000];
+    float buffer[BUFFER_SIZE];
     while (1) {
 #ifdef _WIN32
         int len = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
@@ -95,42 +84,17 @@ void *handle_client(void *arg) {
 #endif
         if (len <= 0) break;
         buffer[len] = '\0';
-        int receiver_fd;
-        if (!strncmp(buffer, "get_fds", strlen("get_fds"))) {
-            dprintf(client_fd, "The connected fds are: {");
-            pthread_mutex_lock(&clients_lock);
-            for (int i = 0; i < num_clients; i++) {
-                dprintf(client_fd, "%d", client_fds[i]);
-                if (i != num_clients - 1) {
-                    dprintf(client_fd, ", ");
-                }
+        pthread_mutex_lock(&clients_lock);
+        for (int i = 0; i < num_clients; i++) {
+            if (client_fds[i] != client_fd) {
+#ifdef _WIN32
+                send(client_fds[i], buffer, len, 0);
+#else
+                write(client_fds[i], buffer, len);
+#endif
             }
-            pthread_mutex_unlock(&clients_lock);
-            dprintf(client_fd, "}.\n");
-        } else if (sscanf(buffer, "send_fd %d ", &receiver_fd) == 1) {
-            char* msg_start = strchr(buffer, ' ');
-            if (msg_start) msg_start = strchr(msg_start + 1, ' ');
-            else {
-                dprintf(client_fd, "No file descriptor specified!\n");
-                continue;
-            }
-            if (msg_start) msg_start++;
-            else {
-                dprintf(client_fd, "No message specified!\n");
-                continue;
-            }
-            pthread_mutex_lock(&clients_lock);
-            for (int i = 0; i < num_clients; i++) {
-                if (client_fds[i] == receiver_fd) {
-                    dprintf(receiver_fd, "%s", msg_start);
-                }
-            }
-            pthread_mutex_unlock(&clients_lock);
-        } else if (strncmp(buffer, "exit", strlen("exit"))) {
-            dprintf(client_fd, "%s\n", buffer);
-        } else {
-            break;
         }
+        pthread_mutex_unlock(&clients_lock);
     }
     remove_client(client_fd);
 #ifdef _WIN32
@@ -141,18 +105,6 @@ void *handle_client(void *arg) {
     close_socket(client_fd);
     free(ptr);
     return NULL;
-}
-
-void add_message(AudioMessage msg) {
-
-}
-
-int get_messages(AudioMessage *buffer, int max) {
-    return 1;
-}
-
-void init_queue() {
-
 }
 
 int main() {

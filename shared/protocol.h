@@ -1,0 +1,2 @@
+#define PORT 1490
+#define BUFFER_SIZE 4096
