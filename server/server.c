@@ -75,20 +75,28 @@ void *handle_client(void *arg) {
     int *ptr = (int*)arg;
     int client_fd = *ptr;
     char buffer[BUFFER_SIZE * sizeof(float)];
+    header_t header;
     while (1) {
+        if (read_full(client_fd, (char*)&header, sizeof(header)) <= 0) break;
         int len = read_full(client_fd, buffer, sizeof(buffer));
         if (len <= 0) break;
-        pthread_mutex_lock(&clients_lock);
-        for (int i = 0; i < num_clients; i++) {
-            if (client_fds[i] != client_fd) {
+        if (header.recv_id == 0) {
+            pthread_mutex_lock(&clients_lock);
+            for (int i = 0; i < num_clients; i++) {
+                if (client_fds[i] != client_fd) {
 #ifdef _WIN32
-                send(client_fds[i], buffer, len, 0);
+                    send(client_fds[i], &header, sizeof(header), 0);
+                    send(client_fds[i], buffer, header.load_len, 0);
 #else
-                write(client_fds[i], buffer, len);
+                    write(client_fds[i], &header, sizeof(header));
+                    write(client_fds[i], buffer, header.load_len);
 #endif
+                }
             }
+            pthread_mutex_unlock(&clients_lock);
+        } else {
+            // send direct
         }
-        pthread_mutex_unlock(&clients_lock);
     }
     remove_client(client_fd);
 #ifdef _WIN32

@@ -20,10 +20,17 @@ void* client_record(void *arg) {
     while (1) {
         PaError read_err = Pa_ReadStream(instream, buffer, BUFFER_SIZE);
         if (read_err != paNoError) break;
+        header_t header;
+        header.send_id = 0;
+        header.recv_id = 0;
+        header.timestamp = (uint32_t)time(NULL);
+        header.load_len = BUFFER_SIZE * sizeof(float);
 #ifdef _WIN32
-        send(server_fd, buffer, BUFFER_SIZE * sizeof(float), 0);
+        send(server_fd, &header, sizeof(header), 0);
+        send(server_fd, buffer, header.load_len, 0);
 #else
-        write(server_fd, buffer, BUFFER_SIZE * sizeof(float));
+        write(server_fd, &header, sizeof(header));
+        write(server_fd, buffer, header.load_len);
 #endif
     }
     Pa_StopStream(instream);
@@ -39,7 +46,9 @@ void* client_play(void *arg) {
     Pa_StartStream(outstream);
     char buffer[BUFFER_SIZE * sizeof(float)];
     while (1) {
-        read_full(server_fd, buffer, sizeof(buffer));
+        header_t header;
+        if (read_full(server_fd, (char*)&header, sizeof(header)) <= 0) break;
+        if (read_full(server_fd, buffer, sizeof(buffer)) <= 0) break;
         PaError read_err = Pa_WriteStream(outstream, buffer, BUFFER_SIZE);
         if (read_err != paNoError) break;
     }
