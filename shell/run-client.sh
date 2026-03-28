@@ -2,4 +2,4 @@
 set -e
 
 make client
-./client_app
+./bin/client_app.exe
