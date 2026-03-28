@@ -1,5 +1,20 @@
 #include <stdint.h>
 
+#ifdef _WIN32
+  #include <winsock2.h>
+  #include <ws2tcpip.h>
+  #ifdef __MINGW32__
+    #include <pthread.h>
+  #else
+    #error "need pthread"
+  #endif
+#else
+  #include <pthread.h>
+  #include <netinet/in.h>
+  #include <arpa/inet.h>
+  #include <sys/socket.h>
+#endif
+
 #define PORT 1490
 #define BUFFER_SIZE 512
 #define SAMPLE_RATE 16000

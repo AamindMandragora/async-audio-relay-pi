@@ -1,1 +1,2 @@
-separate recording and playing
+- added packet header, make mapping from send and recv ids to file descriptors
+- implement the write to / read from files for async audio

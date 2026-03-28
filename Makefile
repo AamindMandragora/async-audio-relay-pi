@@ -19,17 +19,23 @@ CLIENT_OBJ = objs/client.o
 SERVER_BIN = bin/server_app
 CLIENT_BIN = bin/client_app
 
+PROTOCOL_SRC = shared/protocol.c
+PROTOCOL_OBJ = objs/protocol.o
+
 all: server client
 
 server: $(SERVER_BIN)
 
 client: $(CLIENT_BIN)
 
-$(SERVER_BIN): $(SERVER_OBJ) | bin
+$(SERVER_BIN): $(SERVER_OBJ) $(PROTOCOL_OBJ) | bin
 	$(CC) $(CFLAGS) -o $@ $^ $(LIBS)
 
-$(CLIENT_BIN): $(CLIENT_OBJ) | bin
+$(CLIENT_BIN): $(CLIENT_OBJ) $(PROTOCOL_OBJ) | bin
 	$(CC) $(CFLAGS) -o $@ $^ -lportaudio $(LIBS)
+
+objs/protocol.o: shared/protocol.c | objs
+	$(CC) $(CFLAGS) -c $< -o $@
 
 objs/server.o: server/server.c | objs
 	$(CC) $(CFLAGS) -c $< -o $@

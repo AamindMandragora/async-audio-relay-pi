@@ -85,10 +85,10 @@ void *handle_client(void *arg) {
             for (int i = 0; i < num_clients; i++) {
                 if (client_fds[i] != client_fd) {
 #ifdef _WIN32
-                    send(client_fds[i], &header, sizeof(header), 0);
+                    send(client_fds[i], (char*)&header, sizeof(header), 0);
                     send(client_fds[i], buffer, header.load_len, 0);
 #else
-                    write(client_fds[i], &header, sizeof(header));
+                    write(client_fds[i], (char*)&header, sizeof(header));
                     write(client_fds[i], buffer, header.load_len);
 #endif
                 }
@@ -118,8 +118,8 @@ int main() {
             perror("accept()");
             exit(1);
         }
-        int flag = 1;
-        setsockopt(client_fd, IPPROTO_TCP, TCP_NODELAY, &flag, sizeof(flag));
+        int setopt = 1;
+        setsockopt(client_fd, IPPROTO_TCP, TCP_NODELAY, (const char*)&setopt, sizeof(setopt));
         add_client(client_fd);
         int *ptr = malloc(sizeof(int));
         if (ptr == NULL) {
