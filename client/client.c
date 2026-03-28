@@ -48,7 +48,7 @@ void* client_play(void *arg) {
     while (1) {
         header_t header;
         if (read_full(server_fd, (char*)&header, sizeof(header)) <= 0) break;
-        if (read_full(server_fd, buffer, sizeof(buffer)) <= 0) break;
+        if (read_full(server_fd, buffer, header.load_len) <= 0) break;
         PaError read_err = Pa_WriteStream(outstream, buffer, BUFFER_SIZE);
         if (read_err != paNoError) break;
     }
