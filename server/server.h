@@ -2,6 +2,7 @@
 #define SERVER_H
 
 #include "protocol.h"
+#include "queue.h"
 
 #define MAX_CLIENTS 2
 #define MAX_MESSAGES 100

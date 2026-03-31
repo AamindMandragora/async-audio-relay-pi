@@ -65,13 +65,13 @@ int main() {
         exit(-1);
     }
 #endif
-    int sock_fd = socket(AF_INET, SOCK_STREAM, 0);
+    int sock_fd = socket(AF_INET, SOCK_DGRAM, 0);
     if (sock_fd < 0) {
         perror("socket()");
         exit(-1);
     }
-    int setopt = 1;
-    setsockopt(sock_fd, IPPROTO_TCP, TCP_NODELAY, (const char*)&setopt, sizeof(setopt));
+    // int setopt = 1;
+    // setsockopt(sock_fd, IPPROTO_TCP, TCP_NODELAY, (const char*)&setopt, sizeof(setopt));
 
     struct sockaddr_in server_addr;
     server_addr.sin_family = AF_INET;

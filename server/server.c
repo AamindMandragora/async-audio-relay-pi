@@ -1,4 +1,6 @@
 #define _POSIX_C_SOURCE 200809L
+#define NTHREADS 4
+
 
 #include "server.h"
 #include "string.h"
@@ -16,6 +18,12 @@
 static int num_clients = 0;
 static int client_fds[MAX_CLIENTS];
 static pthread_mutex_t clients_lock = PTHREAD_MUTEX_INITIALIZER;
+
+
+typedef struct threadInp {
+    struct sockaddr_in * client_addr;
+    header_t * buffer;
+} threadInp;
 
 void add_client(int fd) {
     pthread_mutex_lock(&clients_lock);
@@ -44,7 +52,7 @@ int start_server(int port) {
         exit(-1);
     }
 #endif
-    int sock_fd = socket(AF_INET, SOCK_STREAM, 0);
+    int sock_fd = socket(AF_INET, SOCK_DGRAM, 0);
     if (sock_fd < 0) {
         perror("socket()");
         exit(-1);
@@ -62,16 +70,22 @@ int start_server(int port) {
         close_socket(sock_fd);
         exit(-1);
     }
-    if (listen(sock_fd, 10) < 0) {
-        perror("listen");
-        close_socket(sock_fd);
-        exit(-1);
-    }
+    //Don't need listen on UDP  
+    // if (listen(sock_fd, 10) < 0) {
+    //     perror("listen");
+    //     close_socket(sock_fd);
+    //     exit(-1);
+    // }
     printf("Server listening on port %d\n", port);
     return sock_fd;
 }
 
+
+
+
+
 void *handle_client(void *arg) {
+    queue* taskQueue = (queue *)arg;
     int *ptr = (int*)arg;
     int client_fd = *ptr;
     char buffer[BUFFER_SIZE * sizeof(float)];
@@ -110,32 +124,40 @@ void *handle_client(void *arg) {
 }
 
 int main() {
-    int sock_fd = start_server(PORT);
-    while (1) {
-        if (num_clients >= MAX_CLIENTS) continue;
-        int client_fd = accept(sock_fd, NULL, NULL);
-        if (client_fd < 0) {
-            perror("accept()");
-            exit(1);
-        }
-        int setopt = 1;
-        setsockopt(client_fd, IPPROTO_TCP, TCP_NODELAY, (const char*)&setopt, sizeof(setopt));
-        add_client(client_fd);
-        int *ptr = malloc(sizeof(int));
-        if (ptr == NULL) {
-            close_socket(client_fd);
-            continue;
-        }
-        *ptr = client_fd;
-        printf("Connected file descriptor: %d\n", client_fd);
+    int init = 1;
+    queue * thread_queue = queueInit();
+    for(size_t i = 0; i < NTHREADS; i ++) {
         pthread_t tid;
-        if (pthread_create(&tid, NULL, handle_client, (void*)ptr)) {
+        if(pthread_create(&tid, NULL, handle_client, (void*)thread_queue)) {
             perror("pthread_create()");
-            free(ptr);
-            close_socket(client_fd);
-            close_socket(sock_fd);
-            exit(1);
+            init = 0;
+            break;
         }
         pthread_detach(tid);
     }
+
+    int sock_fd = start_server(PORT);
+    while (init) {
+        if (num_clients >= MAX_CLIENTS) continue;
+        struct sockaddr_in* client_addr;
+        header_t* buffer= malloc(sizeof(header_t));
+
+        size_t len = sizeof(client_addr);
+        int n = recvfrom(sock_fd, buffer, sizeof(buffer),
+                0, client_addr,&len); //receive message from server
+
+        threadInp * tInp = malloc(sizeof(threadInp));
+        if(tInp == NULL) continue;
+        tInp->client_addr = client_addr;
+        tInp->buffer = buffer;
+        queue_push(thread_queue, tInp);
+
+    }
+
+    queue_destroy(thread_queue);
 }
+
+
+//client will send a packet -> contains its original ID or -1 for give me an ID (cached in file)
+//server responds with a packet that has an id, add this person to the address list
+//
