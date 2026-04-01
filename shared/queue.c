@@ -10,6 +10,7 @@ queue *  queue_init() {
     pthread_mutex_init(&(rQueue->lock), NULL);
     sem_init(&(rQueue->countsem), 0 ,0);
     sem_init(&(rQueue->spacesem), 0 ,QUEUE_SIZE);
+    return rQueue;
 }
 
 void queue_destroy(queue * q) {
@@ -23,7 +24,7 @@ void queue_push(queue * q, void *element) {
   sem_wait( &(q->spacesem) );
   pthread_mutex_lock(&(q->lock));
   q->q_buffer[ ((q->in)++) & (QUEUE_SIZE-1) ] = element;
-  p_m_unlock(&(q->lock));
+  pthread_mutex_unlock(&(q->lock));
   sem_post(&(q->countsem));
 
 }
@@ -32,7 +33,7 @@ void *queue_pull(queue * q){
   sem_wait( &(q->countsem) );
   pthread_mutex_lock(&(q->lock));
   void * outEle = q->q_buffer[((q->out++)) & (QUEUE_SIZE-1)];
-  p_m_unlock(&(q->lock));
+  pthread_mutex_unlock(&(q->lock));
   sem_post(&(q->spacesem));
   return outEle;
 }

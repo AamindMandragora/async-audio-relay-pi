@@ -16,22 +16,28 @@ void* client_record(void *arg) {
     PaStream* instream;
     Pa_OpenDefaultStream(&instream, 1, 0, paFloat32, SAMPLE_RATE, BUFFER_SIZE, NULL, NULL);
     Pa_StartStream(instream);
-    char buffer[BUFFER_SIZE * sizeof(float)];
+    header_t buffer;
+    int t = 0;
     while (1) {
-        PaError read_err = Pa_ReadStream(instream, buffer, BUFFER_SIZE);
+        PaError read_err = Pa_ReadStream(instream, buffer.data, BUFFER_SIZE);
         if (read_err != paNoError) break;
-        header_t header;
-        header.send_id = 0;
-        header.recv_id = 0;
-        header.timestamp = (uint32_t)time(NULL);
-        header.load_len = BUFFER_SIZE * sizeof(float);
-#ifdef _WIN32
-        send(server_fd, (const char*)&header, sizeof(header), 0);
-        send(server_fd, buffer, header.load_len, 0);
-#else
-        write(server_fd, (const char*)&header, sizeof(header));
-        write(server_fd, buffer, header.load_len);
-#endif
+        if(t == 0) {
+            buffer.send_id = -1;
+        } else {
+            buffer.send_id = 0;
+        }
+        buffer.recv_id = 0;
+        buffer.timestamp = (uint32_t)time(NULL);
+        buffer.load_len = BUFFER_SIZE * sizeof(float);
+        sendto(server_fd, (char * )&buffer, sizeof(buffer), 0, NULL, sizeof(struct sockaddr_in));
+// #ifdef _WIN32
+//         send(server_fd, (const char*)&header, sizeof(header), 0);
+//         send(server_fd, buffer, header.load_len, 0);
+// #else
+//         write(server_fd, (const char*)&header, sizeof(header));
+//         write(server_fd, buffer, header.load_len);
+// #endif
+        t++;
     }
     Pa_StopStream(instream);
     Pa_CloseStream(instream);
@@ -46,12 +52,12 @@ void* client_play(void *arg) {
     Pa_StartStream(outstream);
     char buffer[BUFFER_SIZE * sizeof(float)];
     while (1) {
-        header_t header;
-        if (read_full(server_fd, (char*)&header, sizeof(header)) <= 0) break;
-        if (read_full(server_fd, buffer, header.load_len) <= 0) break;
+        //printf("Listening to message\n");
+        if (recvfrom(server_fd, buffer, BUFFER_SIZE * sizeof(float),0, NULL, NULL) <= 0) break;
         PaError read_err = Pa_WriteStream(outstream, buffer, BUFFER_SIZE);
         if (read_err != paNoError) break;
     }
+    printf("Failed\n");
     Pa_StopStream(outstream);
     Pa_CloseStream(outstream);
     return NULL;

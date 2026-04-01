@@ -21,9 +21,9 @@ typedef struct {
 
 extern MessageQueue message_queue;
 
-void add_client(int fd);
+void add_client(struct sockaddr_in fd);
 
-void remove_client(int fd);
+void remove_client(struct sockaddr_in fd);
 
 int start_server(int port);
 
