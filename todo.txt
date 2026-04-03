@@ -1,5 +1,2 @@
-- added packet header, make mapping from send and recv ids to file descriptors
 - maybe do tcp connection -> UDP port
-
-
 - implement the write to / read from files for async audio

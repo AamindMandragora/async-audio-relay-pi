@@ -4,8 +4,8 @@
 #include "protocol.h"
 #include "queue.h"
 
-#define MAX_CLIENTS 2
-#define MAX_MESSAGES 100
+#define MAX_CLIENTS 10
+#define MAX_MESSAGES 1000
 
 typedef struct {
     int id;
@@ -21,7 +21,7 @@ typedef struct {
 
 extern MessageQueue message_queue;
 
-void add_client(struct sockaddr_in fd);
+void add_client(struct sockaddr_in fd, uint32_t hash);
 
 void remove_client(struct sockaddr_in fd);
 

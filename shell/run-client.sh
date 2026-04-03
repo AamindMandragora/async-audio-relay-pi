@@ -2,4 +2,4 @@
 set -e
 
 make client
-./bin/client_app.exe
+./bin/client_app.exe "$@"

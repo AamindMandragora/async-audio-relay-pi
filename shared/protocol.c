@@ -1,15 +1,9 @@
 #include "protocol.h"
 
-ssize_t read_full(int fd, char *buffer, size_t total) {
-    size_t received = 0;
-    while (received < total) {
-#ifdef _WIN32
-        int n = recv(fd, buffer + received, total - received, 0);
-#else
-        int n = read(fd, buffer + received, total - received);
-#endif
-        if (n <= 0) return n;
-        received += n;
+uint32_t hash_user(const char *name) {
+    uint32_t h = 5381;
+    while (*name) {
+        h = ((h << 5) + h) + (unsigned char)(*name++);
     }
-    return received;
+    return h;
 }

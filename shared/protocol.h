@@ -22,11 +22,14 @@
 #define SAMPLE_RATE 16000
 
 typedef struct header_t {
-  int send_id;
-	uint32_t recv_id;
+  uint32_t sender;
+  uint32_t target;
+	struct {
+    uint32_t len : 30;
+    uint32_t flags : 2;
+  } info;
 	uint32_t timestamp;
-	uint32_t load_len;
-  float data[BUFFER_SIZE];
+	float data[BUFFER_SIZE];
 } header_t;
 
-ssize_t read_full(int fd, char *buffer, size_t total);
+uint32_t hash_user(const char *name);
