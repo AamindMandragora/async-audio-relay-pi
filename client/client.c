@@ -75,7 +75,7 @@ int main(int argc, char *argv[]) {
     struct sockaddr_in server_addr;
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = htons(PORT);
-    if (inet_pton(AF_INET, "10.201.71.19", &server_addr.sin_addr) <= 0) {
+    if (inet_pton(AF_INET, "10.195.118.204", &server_addr.sin_addr) <= 0) {
         perror("inet_pton()");
         exit(-1);
     }
