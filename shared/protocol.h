@@ -22,19 +22,18 @@
 #define BUFFER_SIZE 512
 #define SAMPLE_RATE 16000
 #define MAX_NAME 64
+#define RING_TIMEOUT 10
 
-typedef struct header_t {
+typedef struct __attribute__((packed)) header_t {
   uint32_t sender;
   uint32_t target;
-	struct {
-    uint32_t len : 30;
-    uint32_t flags : 2;
-  } info;
+	uint32_t len;
+  uint32_t flags;
 	uint32_t timestamp;
 	float data[BUFFER_SIZE];
 } header_t;
 
-typedef struct {
+typedef struct __attribute__((packed)) client_list_t {
     uint32_t count;
     struct {
         uint32_t id;
