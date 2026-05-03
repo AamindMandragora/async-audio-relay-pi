@@ -5,23 +5,9 @@
 #include "queue.h"
 
 #define MAX_CLIENTS 10
-#define MAX_MESSAGES 1000
+#define MSG_DIR "messages"
 
-typedef struct {
-    int id;
-    int length;
-    char data[BUFFER_SIZE * sizeof(float)];
-} AudioMessage;
-
-typedef struct {
-    AudioMessage messages[MAX_MESSAGES];
-    int count;
-    pthread_mutex_t lock;
-} MessageQueue;
-
-extern MessageQueue message_queue;
-
-void add_client(struct sockaddr_in fd, uint32_t hash);
+void add_client(struct sockaddr_in fd, uint32_t hash, const char *name);
 
 void remove_client(struct sockaddr_in fd);
 

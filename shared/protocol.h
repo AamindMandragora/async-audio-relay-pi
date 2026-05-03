@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <time.h>
 
 #ifdef _WIN32
   #include <winsock2.h>
@@ -20,6 +21,7 @@
 #define PORT 1490
 #define BUFFER_SIZE 512
 #define SAMPLE_RATE 16000
+#define MAX_NAME 64
 
 typedef struct header_t {
   uint32_t sender;
@@ -31,5 +33,13 @@ typedef struct header_t {
 	uint32_t timestamp;
 	float data[BUFFER_SIZE];
 } header_t;
+
+typedef struct {
+    uint32_t count;
+    struct {
+        uint32_t id;
+        char name[MAX_NAME];
+    } clients[10];
+} client_list_t;
 
 uint32_t hash_user(const char *name);
