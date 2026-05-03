@@ -7,7 +7,7 @@ else
     LIBS =
 endif
 
-PI_HOST = pi@10.195.118.204
+PI_HOST = pi@10.201.71.19
 PI_DIR = ~/async-audio-relay
 
 SERVER_SRC = server/server.c
