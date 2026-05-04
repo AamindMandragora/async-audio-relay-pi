@@ -2,4 +2,8 @@
 set -e
 
 make client
-./bin/client_app "$@"
+if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cygwin" ]] || [[ "$OS" == "Windows_NT" ]]; then
+    ./bin/client_app.exe "$@"
+else
+    ./bin/client_app "$@"
+fi
