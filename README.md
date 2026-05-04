@@ -16,7 +16,7 @@ git clone https://github.com/AamindMandragora/async-audio-relay-pi.git
 ```
 In `shell/run-server.sh` and `shell/deploy-server.sh` on the local machine, change 
 ```bash
-PI_HOST=pi@10.195.118.204
+PI_HOST=pi@127.0.0.1
 PI_DIR=/home/pi/async-audio-relay
 ```
 to the IP of the pi and the desired directory.
