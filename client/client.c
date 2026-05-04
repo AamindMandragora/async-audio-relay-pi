@@ -24,8 +24,11 @@ static volatile uint32_t caller = 0;
 static char caller_name[MAX_NAME] = {0};
 
 void handle_sigint(int sig) {
+#ifdef _WIN32
+    signal(SIGINT, handle_sigint);
+#endif
     (void)sig;
-    if (recording || in_call == 2) {
+    if (recording || in_call == 2 || voicemail) {
         recording = 0;
         in_call = 0;
         voicemail = 0;

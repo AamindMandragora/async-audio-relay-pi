@@ -37,6 +37,9 @@ typedef struct tdata {
 } tdata;
 
 void handle_sigint(int sig) {
+#ifdef _WIN32
+    signal(SIGINT, handle_sigint);
+#endif
     (void)sig;
     printf("\nShutting down server. Disconnecting all clients...\n");
     header_t kill_msg = {0};
