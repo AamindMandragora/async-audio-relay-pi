@@ -1,11 +1,11 @@
 # Asynchronous Audio Relay with Raspberry Pi
 ## Project Overview
-This project implements an asychrnous audio relay using a Raspberry Pi. A server is run on the Raspberry Pi which allows users to call and share audio messages. If users disconnect, they are able to replay audio messages they missed once they have reconnected. 
+This project implements an asynchronous audio relay using a Raspberry Pi. A server is run on the Raspberry Pi which allows users to call and share audio messages. If users disconnect, they are able to replay audio messages they missed once they have reconnected. 
 
 
 ## Installation and Usage
 ### Dependencies/Requirements
-- Windows/Linux OS (No gaurantees for mac)
+- Windows/Linux OS (No guarantees for mac)
 - GCC or clang
 - Portaudio: https://portaudio.com/
 - rsync
@@ -38,12 +38,14 @@ In the client terminal, instructions will appear. They have the following functi
 - voicemail <target> : play unheard voicemails from <target>. When unspecified, all unheard voicemails are played
 - call <user> : Attempts to call the specified users
 - broadcast : Sends a message to all users
+
 ## Group member roles
 Advayth Pashupati:
+- SPSC client threads
+- Persistent audio storage
+- Audio data protocol
 
--
 Albert Han:
-
 - Portaudio recording/playback
 - Thread safe queue
 - UDP server
