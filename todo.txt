@@ -1,3 +1,5 @@
 - add support for voicemails from multiple different people
 - add a simple benchmarking script
 - maybe packet sequence numbers?
+- add LOTS of comments on every file
+- comprehensive README (names + contributions, proj overview, installation + setup + usage)
